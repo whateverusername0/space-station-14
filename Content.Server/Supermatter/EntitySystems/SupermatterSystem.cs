@@ -25,6 +25,7 @@ using Content.Server.AlertLevel;
 using Content.Shared.Examine;
 using Content.Server.DoAfter;
 using Content.Server.Explosion.EntitySystems;
+using Content.Server.Kitchen.Components;
 
 namespace Content.Server.Supermatter.EntitySystems;
 
@@ -424,26 +425,21 @@ public sealed class SupermatterSystem : EntitySystem
 
     private void OnClick(EntityUid uid, SupermatterComponent sm, InteractUsingEvent args)
     {
-        if (!TryComp<TagComponent>(args.Used, out var tags))
-            return;
-        foreach (var tag in tags.Tags)
+        if (HasComp<SharpComponent>(args.Used))
         {
-            if (tag.Id == "Knife")
-            {
-                _adminLogger.Add(LogType.Action, LogImpact.High, $"{EntityManager.ToPrettyString(uid):player} is trying to extract a sliver from the supermatter crystal.");
-                _popup.PopupClient(Loc.GetString("supermatter-tamper-begin"), args.User);
+            _adminLogger.Add(LogType.Action, LogImpact.High, $"{EntityManager.ToPrettyString(uid):player} is trying to extract a sliver from the supermatter crystal.");
+            _popup.PopupClient(Loc.GetString("supermatter-tamper-begin"), args.User);
 
-                var dargs = new DoAfterArgs(EntityManager, uid, 30, new SupermatterDoAfterEvent(), args.Used)
-                {
-                    BreakOnDamage = true,
-                    BreakOnHandChange = true,
-                    BreakOnMove = true,
-                    BreakOnWeightlessMove = true,
-                    NeedHand = true,
-                    RequireCanInteract = true,
-                };
-                _doAfter.TryStartDoAfter(dargs);
-            }
+            var dargs = new DoAfterArgs(EntityManager, uid, 30, new SupermatterDoAfterEvent(), args.Used)
+            {
+                BreakOnDamage = true,
+                BreakOnHandChange = true,
+                BreakOnMove = true,
+                BreakOnWeightlessMove = false,
+                NeedHand = true,
+                RequireCanInteract = true,
+            };
+            _doAfter.TryStartDoAfter(dargs);
         }
     }
 
